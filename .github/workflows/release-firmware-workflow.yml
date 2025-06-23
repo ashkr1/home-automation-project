@@ -3,6 +3,9 @@ name: Auto Build & Release ESP01 Firmware
 on:
   workflow_dispatch:  # Manual trigger
 
+permissions:
+  contents: write 
+  
 jobs:
   build:
     runs-on: ubuntu-latest
