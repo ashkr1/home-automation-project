@@ -51,6 +51,11 @@ jobs:
           version=${{ steps.version.outputs.version }}
           sed -i "s/v{{VERSION}}/$version/g" platformio.ini || true
           sed -i "s/v{{VERSION}}/$version/g" include/Configs.hpp || true
+      
+      - name: 🔐 Patch Firebase API key into configs
+        run: |
+          sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/configs.hpp
+
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
