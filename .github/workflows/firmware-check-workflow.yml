@@ -24,6 +24,10 @@ jobs:
       - name: ⚙️ Build firmware
         run: platformio run
 
+      - name: 🔐 Patch Firebase API key into configs
+        run: |
+          sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/configs.hpp
+
       - name: 📂 Check if .bin file exists
         run: |
           BIN_FILE=$(find .pio/build -name firmware.bin | head -n 1)
