@@ -54,7 +54,7 @@ jobs:
       
       - name: 🔐 Patch Firebase API key into configs
         run: |
-          sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/configs.hpp
+          sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/Configs.hpp
 
 
       - name: 🐍 Setup Python
