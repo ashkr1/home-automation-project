@@ -117,6 +117,9 @@ Handler handler;
 
 void setup() {
   
+
+  LOGI("Prime HomeLink, started: %s",FIRMWARE_VERSION);
+
   Serial.begin(74880);
   Serial.setDebugOutput(true);
 

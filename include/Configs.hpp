@@ -1,5 +1,6 @@
 #pragma once
 
+#define FIRMWARE_VERSION "v{{VERSION}}"
 #define ENABLE_USER_AUTH
 // #define ENABLE_CAPTIVE_MODE
 #define SOFTAP_HOMELINK_SSID "Prime HomeLink"

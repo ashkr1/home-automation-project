@@ -1,0 +1,35 @@
+name: Verify ESP01 Firmware Build
+
+on:
+  push:
+    branches:
+      - main  # ✅ Only run on push to main
+
+jobs:
+  verify-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: 🛠️ Install PlatformIO
+        run: pip install platformio
+
+      - name: ⚙️ Build firmware
+        run: platformio run
+
+      - name: 📂 Check if .bin file exists
+        run: |
+          BIN_FILE=$(find .pio/build -name firmware.bin | head -n 1)
+          if [ -z "$BIN_FILE" ]; then
+            echo "❌ Firmware .bin file not found!"
+            exit 1
+          else
+            echo "✅ Found firmware binary at: $BIN_FILE"
+          fi
