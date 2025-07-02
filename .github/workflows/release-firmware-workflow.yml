@@ -57,28 +57,29 @@ jobs:
         run: |
           sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/Configs.hpp
 
-      - name: 🔐 Patch MQTT cert into code
+      - name: 🔐 Inject MQTT certificate into MQTTServer.cpp
         run: |
-          # Save cert as temporary file
           echo "${{ secrets.MQTT_CONNECTION_CERT }}" > cert.pem
-
-          # Create a new file with cert embedded
           awk '
             /{{MQTT_CONNECTION_CERT}}/ {
-              while ((getline line < "cert.pem") > 0) {
-                print line
-              }
+              while ((getline line < "cert.pem") > 0) print line;
               next
             }
             { print }
           ' src/MQTTServer.cpp > src/MQTTServer.cpp.new
 
           mv src/MQTTServer.cpp.new src/MQTTServer.cpp
-
-          # Delete temporary cert
           shred -u cert.pem || rm -f cert.pem
 
+      - name: 🔍 Context check for embedded certificate
+        run: |
+          echo "🔎 Checking lines around BEGIN CERTIFICATE:"
+          awk '/BEGIN CERTIFICATE/ {for(i=NR-2;i<=NR+2;i++) print lines[i]; next} {lines[NR]=$0}' src/MQTTServer.cpp
 
+          echo "🔎 Checking lines around END CERTIFICATE:"
+          awk '/END CERTIFICATE/ {for(i=NR-2;i<=NR+2;i++) print lines[i]; next} {lines[NR]=$0}' src/MQTTServer.cpp
+
+    
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
@@ -87,19 +88,27 @@ jobs:
       - name: 💠 Install PlatformIO
         run: pip install platformio
 
-      - name: ⚙️ Build firmware
+      - name: ⚡️ Build esp01_1m using mqtt environments
+        run: |
+          platformio run -e esp01_1m_using_mqtt
+          cp .pio/build/esp01_1m_using_mqtt/firmware.bin esp01_1m_using_mqtt-${{ steps.version.outputs.version }}.bin
+
+      - name: ⚡️ Build esp01_1m using firebase environments
         run: |
           platformio run -e esp01_1m_using_firebase
           cp .pio/build/esp01_1m_using_firebase/firmware.bin esp01_1m_using_firebase-${{ steps.version.outputs.version }}.bin
 
-          platformio run -e esp01_1m_using_mqtt
-          cp .pio/build/esp01_1m_using_mqtt/firmware.bin esp01_1m_using_mqtt-${{ steps.version.outputs.version }}.bin
+      - name: ⚡️ Build esp d1 mini using mqtt environments
+        run: |
+          platformio run -e d1_mini_using_mqtt
+          cp .pio/build/d1_mini_using_mqtt/firmware.bin d1_mini_using_mqtt-${{ steps.version.outputs.version }}.bin
 
+
+      - name: ⚡️ Build esp d1 mini using firebase environments
+        run: |
           platformio run -e d1_mini_using_firebase
           cp .pio/build/d1_mini_using_firebase/firmware.bin d1_mini_using_firebase-${{ steps.version.outputs.version }}.bin
 
-          platformio run -e d1_mini_using_mqtt
-          cp .pio/build/d1_mini_using_mqtt/firmware.bin d1_mini_using_mqtt-${{ steps.version.outputs.version }}.bin
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
