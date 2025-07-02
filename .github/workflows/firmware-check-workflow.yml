@@ -3,14 +3,14 @@ name: Verify ESP01 Firmware Build
 on:
   push:
     branches:
-      - main  # ✅ Only run on push to main
+      - main
 
 jobs:
   verify-build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout code
+      - name: 📅 Checkout code
         uses: actions/checkout@v4
 
       - name: 🐍 Setup Python
@@ -18,22 +18,29 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: 🛠️ Install PlatformIO
+      - name: 💠 Install PlatformIO
         run: pip install platformio
 
-      - name: ⚙️ Build firmware
-        run: platformio run
-
-      - name: 🔐 Patch Firebase API key into configs
+      - name: ⚙️ Patch Firebase API key into configs
         run: |
           sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/Configs.hpp
+          sed -i "s|{{MQTT_CONNECTION_CERT}}|${{ secrets.MQTT_CONNECTION_CERT }}|g" src/MQTTServer.cpp
 
-      - name: 📂 Check if .bin file exists
+      - name: ⚡️ Build all environments
         run: |
-          BIN_FILE=$(find .pio/build -name firmware.bin | head -n 1)
-          if [ -z "$BIN_FILE" ]; then
-            echo "❌ Firmware .bin file not found!"
-            exit 1
-          else
-            echo "✅ Found firmware binary at: $BIN_FILE"
-          fi
+          platformio run -e esp01_1m_using_firebase
+          platformio run -e esp01_1m_using_mqtt
+          platformio run -e d1_mini_using_firebase
+          platformio run -e d1_mini_using_mqtt
+
+      - name: 📂 Check firmware bin files
+        run: |
+          for env in esp01_1m_using_firebase esp01_1m_using_mqtt d1_mini_using_firebase d1_mini_using_mqtt; do
+            BIN_FILE=".pio/build/$env/firmware.bin"
+            if [ ! -f "$BIN_FILE" ]; then
+              echo "❌ Missing firmware binary for $env"
+              exit 1
+            else
+              echo "✅ Found: $BIN_FILE"
+            fi
+          done

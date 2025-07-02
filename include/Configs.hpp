@@ -1,7 +1,12 @@
 #pragma once
 
 #define FIRMWARE_VERSION "v{{VERSION}}"
-#define ENABLE_USER_AUTH
+#ifdef USING_FIREBASE_SERVER
+    #define ENABLE_USER_AUTH
+    #define FB_API_KEY "{{FIREBASE_API_KEY}}"
+    #define FIREBASE_PROJECT_ID "prime-homelink"
+    #define HEART_BEAT_INTERVAL 60*1000
+#endif
 // #define ENABLE_CAPTIVE_MODE
 #define SOFTAP_HOMELINK_SSID "Prime HomeLink"
 #define SOFTAP_HOMELINK_PASSWORD ""
@@ -12,8 +17,9 @@
 #define FLAG_ADDR 96
 #define FLAG_FB_SETUP 98
 #define FLAG_FIRESTORE_SETUP 97
-#define RECONNECT_TIME_INTERVEL 5000
-#define HEART_BEAT_INTERVAL 60*1000
 #define DNS_PORT 53
-#define FB_API_KEY "{{FIREBASE_API_KEY}}"
-#define FIREBASE_PROJECT_ID "prime-homelink"
+#define RECONNECT_TIME_INTERVEL 5000
+
+#ifdef USING_MQTT_SERVER
+    #define MQTT_PORT 0
+#endif

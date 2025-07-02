@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef USING_FIREBASE_SERVER
+
 #include <Arduino.h>
 #include <time.h>
 #include <FirebaseClient.h>
@@ -35,3 +37,4 @@ public:
     void getDeviceInfo();
     void updateReboot(bool reboot);
 };
+#endif

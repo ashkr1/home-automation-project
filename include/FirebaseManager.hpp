@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef USING_FIREBASE_SERVER
+
 #include <Configs.hpp>
 
 #include <Arduino.h>
@@ -8,7 +10,6 @@
 #include <Logger.hpp>
 #include <enums/Enums.hpp>
 #include <callbacks/Callbacks.hpp>
-// #include <ExampleFunctions.h>
 #include <PersistantStorageManager.hpp>
 #include <FirebaseClient.h>
 #include <FirestoreManager.hpp>
@@ -50,3 +51,4 @@ class FirebaseManager: private virtual PersistantStorageManager, public Firebase
     void setMacAddress(String mac);
 
 };
+#endif

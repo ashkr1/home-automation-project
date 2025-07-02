@@ -1,3 +1,4 @@
+#ifdef USING_FIREBASE_SERVER
 #include <FirebaseManager.hpp>
 
 WiFiClientSecure sslClient;
@@ -230,3 +231,5 @@ String FirebaseManager::getDeviceFBPass(){
 void FirebaseManager::setMacAddress(String mac){
     this->mac = mac;
 }
+
+#endif

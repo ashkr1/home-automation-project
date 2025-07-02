@@ -8,6 +8,11 @@
 #include "CaptivePortal.hpp"
 #include <Logger.hpp>
 
+#ifdef USING_MQTT_SERVER
+#include <MQTTServer.hpp>
+MQTTServer server;
+#endif
+
 bool abnormalReset=false;
 int blinking=10;
 #define ABNORMAL_RESET_WARNING_PIN 0
@@ -15,23 +20,36 @@ int blinking=10;
 class Handler:public ConnectionCallback, public FirebaseCallback, public FireStoreResultCallback{
 
   bool isConnected=false;
+  #ifdef USING_FIREBASE_SERVER
   FirebaseManager* manager = nullptr;
+  #endif
   long long int lastReconnectAttempt = 0;
   long long int heartBeatSyncing=0;
   bool firestore_initilization_complete = false;
 public:
 
   ~Handler(){
+    #ifdef USING_FIREBASE_SERVER
     if(manager!=nullptr){
       delete manager;
       manager = nullptr;
     }
+    #elif USING_MQTT_SERVER
+      if(MQTTServer::callback){
+        delete MQTTServer::callback;
+        MQTTServer::callback = nullptr;
+      }
+    #endif
   }
 
   void init(){
-    manager = FirebaseManager::getInstance();
-    manager->addStatusCallback(this);
-    manager->setStateChangeListener(this);
+    #ifdef USING_FIREBASE_SERVER
+      manager = FirebaseManager::getInstance();
+      manager->addStatusCallback(this);
+      manager->setStateChangeListener(this);
+    #elif USING_MQTT_SERVER
+      MQTTServer::callback = this;
+    #endif
   }
 
   void onConnectionStateChange(Connection::StaConnection sta) override {
@@ -40,7 +58,11 @@ public:
       LOGFV("callback connection success");
       isConnected=true;
       delay(1000);
-      manager->initilizeApp();
+      #ifdef USING_MQTT_SERVER
+        server.setup();
+      #elif USING_FIREBASE_SERVER
+        manager->initilizeApp();
+      #endif
       // FirebaseManager::getInstance()->initilizeApp();
     }else{
       LOGV("callback connection failed");
@@ -53,6 +75,7 @@ public:
   };
 
   void onAuthSuccess(FirebaseCallbackResult& result) override {
+      #ifdef USING_FIREBASE_SERVER
       LOGI("login/signup success");
       if(result.code == 10){
             LOGI("User UID: %s\n", result.app.getUid().c_str());
@@ -60,28 +83,36 @@ public:
             LOGI("Refresh Token: %s\n", result.app.getRefreshToken().c_str());
 
             LOGFV("proceeding for initilizing firestore...");
-            manager->initilizeFirestore();
-            firestore_initilization_complete = true;
+            #ifdef USING_FIREBASE_SERVER
+              manager->initilizeFirestore();
+              firestore_initilization_complete = true;
+            #endif
         }
+        #endif
   };
 
   void onDeviceStateChange(bool state, bool reboot) override {
     if(!reboot){
       if(state){
+        LOGFI("device state changed, Pin set to LOW");
         digitalWrite(2,LOW);
       }else{
+        LOGFI("device state changed, Pin set to HIGH");
         digitalWrite(2, HIGH);
       }
     }else{
       firestore_initilization_complete=false;
-      manager->updateReboot(false);
+      #ifdef USING_FIREBASE_SERVER
+        manager->updateReboot(false);
+      #endif
       digitalWrite(2, LOW);
       LOGFW("rebooting device on request....");
-      delay(1000);
+      delay(2000);
       ESP.restart();
     }
   };
 
+  #ifdef USING_FIREBASE_SERVER
   void readStateChange(){
     if (firestore_initilization_complete && millis() - lastReconnectAttempt >= RECONNECT_TIME_INTERVEL) {
             LOGFV("calling reading state value");
@@ -99,6 +130,7 @@ public:
             heartBeatSyncing = millis();
         }
   }
+  #endif
 
   
   void manageConnectionCalls(){
@@ -107,8 +139,15 @@ public:
     
     CaptivePortal::getInstance()->reconnect();
 
-    readStateChange();
-    updateServerHeartBeat();
+    if(isConnected){
+      #ifdef USING_MQTT_SERVER
+        server.manageConnection();
+      #endif
+    }
+    #ifdef USING_FIREBASE_SERVER
+      readStateChange();
+      updateServerHeartBeat();
+    #endif
   }
 
 };
@@ -167,7 +206,8 @@ void loop() {
       
     LOGFW("⚠️ Previous boot ended abnormally.");
   }
-
-    FirebaseManager::getInstance()->asyncLoop();
+    #ifdef USING_FIREBASE_SERVER
+      FirebaseManager::getInstance()->asyncLoop();
+    #endif
     handler.manageConnectionCalls();
 }

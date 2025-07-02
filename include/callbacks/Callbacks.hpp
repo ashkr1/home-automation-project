@@ -1,6 +1,9 @@
 #pragma once
 #include <enums/Enums.hpp>
+
+#ifdef USING_FIREBASE_SERVER
 #include <FirebaseClient.h>
+#endif
 
 struct FirebaseCallbackResult
 {
@@ -11,7 +14,10 @@ struct FirebaseCallbackResult
     bool isError;
 
     //optional [can be null at runtime]
-    FirebaseApp app;
+    #ifdef USING_FIREBASE_SERVER
+        FirebaseApp app;
+    #endif
+
 
     FirebaseCallbackResult(FirebaseEnum::FirebaseTask t, char * msg, int c, bool error)
         : event(t), message(msg), code(c), isError(error){}

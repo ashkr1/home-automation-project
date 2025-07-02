@@ -1,3 +1,5 @@
+#ifdef USING_FIREBASE_SERVER
+
 #include <FirestoreManager.hpp>
 
 FirestoreManager::~FirestoreManager(){
@@ -269,3 +271,5 @@ JsonDocument* FirestoreManager::createOrUpdateDocument(String requestType, Strin
 
   return doc;
 }
+
+#endif
