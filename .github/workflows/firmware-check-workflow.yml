@@ -25,6 +25,12 @@ jobs:
         run: |
           sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/Configs.hpp
 
+      - name: 🕵️ Print certificate content before use (Sanity Check)
+        run: |
+          echo "🔐 Certificate content to be injected:"
+          echo "${{ secrets.MQTT_CONNECTION_CERT }}"
+
+
       - name: 🔐 Inject MQTT certificate into MQTTServer.cpp
         run: |
           echo "${{ secrets.MQTT_CONNECTION_CERT }}" > cert.pem
@@ -74,6 +80,12 @@ jobs:
           cert_block=$(awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' src/MQTTServer.cpp)
           echo "$cert_block" | sha256sum | cut -d' ' -f1 > cert_hash.txt
           echo "✅ Certificate SHA256: $(cat cert_hash.txt)"
+
+      - name: 📄 Print full MQTTServer.cpp after cert injection
+        run: |
+          echo "📦 MQTTServer.cpp content after replacement:"
+          cat src/MQTTServer.cpp
+
 
       - name: ⚡️ Build esp01_1m using mqtt environments
         run: |
