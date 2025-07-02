@@ -69,6 +69,11 @@ jobs:
             }
           ' src/MQTTServer.cpp
 
+      - name: 🔐 Print certificate block SHA256 (masked)
+        run: |
+          cert_block=$(awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' src/MQTTServer.cpp)
+          echo "$cert_block" | sha256sum | cut -d' ' -f1 > cert_hash.txt
+          echo "✅ Certificate SHA256: $(cat cert_hash.txt)"
 
       - name: ⚡️ Build esp01_1m using mqtt environments
         run: |
