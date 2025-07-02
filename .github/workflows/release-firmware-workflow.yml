@@ -73,13 +73,33 @@ jobs:
 
       - name: 🔍 Context check for embedded certificate
         run: |
-          echo "🔎 Checking lines around BEGIN CERTIFICATE:"
-          awk '/BEGIN CERTIFICATE/ {for(i=NR-2;i<=NR+2;i++) print lines[i]; next} {lines[NR]=$0}' src/MQTTServer.cpp
+          echo "🔎 Checking 5-line context around BEGIN CERTIFICATE:"
+          awk '
+            NR > 2 { prev2 = prev1; prev1 = line }
+            { line = $0; lines[NR] = $0 }
+            /BEGIN CERTIFICATE/ {
+              print prev2
+              print prev1
+              print $0
+              getline; print
+              getline; print
+            }
+          ' src/MQTTServer.cpp
 
-          echo "🔎 Checking lines around END CERTIFICATE:"
-          awk '/END CERTIFICATE/ {for(i=NR-2;i<=NR+2;i++) print lines[i]; next} {lines[NR]=$0}' src/MQTTServer.cpp
+          echo ""
+          echo "🔎 Checking 5-line context around END CERTIFICATE:"
+          awk '
+            NR > 2 { prev2 = prev1; prev1 = line }
+            { line = $0; lines[NR] = $0 }
+            /END CERTIFICATE/ {
+              print prev2
+              print prev1
+              print $0
+              getline; print
+              getline; print
+            }
+          ' src/MQTTServer.cpp
 
-    
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
