@@ -56,7 +56,28 @@ jobs:
       - name: 🔐 Patch Firebase API key into configs
         run: |
           sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/Configs.hpp
-          sed -i "s|{{MQTT_CONNECTION_CERT}}|${{ secrets.MQTT_CONNECTION_CERT }}|g" src/MQTTServer.cpp
+
+      - name: 🔐 Patch MQTT cert into code
+        run: |
+          # Save cert as temporary file
+          echo "${{ secrets.MQTT_CONNECTION_CERT }}" > cert.pem
+
+          # Create a new file with cert embedded
+          awk '
+            /{{MQTT_CONNECTION_CERT}}/ {
+              while ((getline line < "cert.pem") > 0) {
+                print line
+              }
+              next
+            }
+            { print }
+          ' src/MQTTServer.cpp > src/MQTTServer.cpp.new
+
+          mv src/MQTTServer.cpp.new src/MQTTServer.cpp
+
+          # Delete temporary cert
+          shred -u cert.pem || rm -f cert.pem
+
 
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
