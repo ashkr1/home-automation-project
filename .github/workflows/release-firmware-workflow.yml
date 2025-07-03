@@ -112,8 +112,16 @@ jobs:
         with:
           python-version: 3.11
 
+      - name: 🧪 Export MQTT secrets to ENV for PlatformIO
+        run: |
+          echo "MQTT_SERVER_ADDRESS=${{ secrets.MQTT_SERVER_ADDRESS }}" >> $GITHUB_ENV
+          echo "MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}" >> $GITHUB_ENV
+          echo "MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}" >> $GITHUB_ENV
+          echo "MQTT_TOPIC=${{ secrets.MQTT_TOPIC }}" >> $GITHUB_ENV
+
       - name: 💠 Install PlatformIO
         run: pip install platformio
+
 
       - name: ⚡️ Build esp01_1m using mqtt environments
         run: |

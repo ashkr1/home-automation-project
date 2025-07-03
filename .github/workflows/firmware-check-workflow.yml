@@ -22,6 +22,22 @@ jobs:
       - name: 💠 Install PlatformIO
         run: pip install platformio
 
+      - name: 🧪 Export MQTT secrets to ENV for PlatformIO
+        run: |
+          echo "MQTT_SERVER_ADDRESS=${{ secrets.MQTT_SERVER_ADDRESS }}" >> $GITHUB_ENV
+          echo "MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}" >> $GITHUB_ENV
+          echo "MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}" >> $GITHUB_ENV
+          echo "MQTT_PORT=${{ secrets.MQTT_PORT }}" >> $GITHUB_ENV
+          echo "MQTT_TOPIC=${{ secrets.MQTT_TOPIC }}" >> $GITHUB_ENV
+
+      - name: 🔍 Verify MQTT secrets (length check only)
+        run: |
+          echo "📏 MQTT_SERVER_ADDRESS length: ${#MQTT_SERVER_ADDRESS}"
+          echo "📏 MQTT_USERNAME length: ${#MQTT_USERNAME}"
+          echo "📏 MQTT_PASSWORD length: ${#MQTT_PASSWORD}"
+          echo "📏 MQTT_PORT length: ${#MQTT_PORT}"
+          echo "📏 MQTT_TOPIC length: ${#MQTT_TOPIC}"
+
       - name: ⚙️ Patch Firebase API key into configs
         run: |
           sed -i "s|{{FIREBASE_API_KEY}}|${{ secrets.FIREBASE_API_KEY }}|g" include/Configs.hpp
