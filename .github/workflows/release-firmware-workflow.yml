@@ -151,10 +151,10 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           name: Firmware ${{ steps.version.outputs.version }}
           files: |
-            esp01_1m_using_firebase-${{ steps.version.outputs.version }}.bin
-            esp01_1m_using_mqtt-${{ steps.version.outputs.version }}.bin
-            d1_mini_using_firebase-${{ steps.version.outputs.version }}.bin
-            d1_mini_using_mqtt-${{ steps.version.outputs.version }}.bin
+            homelink_esp01_1m_using_firebase-${{ steps.version.outputs.version }}.bin
+            homelink_esp01_1m_using_mqtt-${{ steps.version.outputs.version }}.bin
+            homelink_d1_mini_using_firebase-${{ steps.version.outputs.version }}.bin
+            homelink_d1_mini_using_mqtt-${{ steps.version.outputs.version }}.bin
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
