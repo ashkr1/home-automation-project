@@ -1,6 +1,6 @@
 #include <Logger.hpp>
 
-LogLevel Logger::currentLogLevel = INFO;
+LogLevel Logger::currentLogLevel = VERBOSE;
 
 static const char* levelColors[] = {
   "\033[35m", // VERBOSE – purple
