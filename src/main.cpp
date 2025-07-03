@@ -179,6 +179,11 @@ void setup() {
 
   delay(5000);
 
+    LOGV(MQTT_BROKER);
+    LOGV(MQTT_USERNAME);
+    LOGV(MQTT_PASSWORD);
+    LOGV(MQTT_TOPIC);
+
   CaptivePortal::addStaConnectionCallback(&handler);
 
   CaptivePortal::getInstance()->startServer();
