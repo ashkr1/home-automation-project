@@ -19,7 +19,7 @@ jobs:
       - name: 🧮 Calculate next version based on lines changed
         id: version
         run: |
-          latest=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
           echo "Latest tag: $latest"
           parts=(${latest//./ })
           major=${parts[0]#v}
@@ -112,29 +112,37 @@ jobs:
         with:
           python-version: 3.11
 
+      - name: 🧪 Export MQTT secrets to ENV for PlatformIO
+        run: |
+          echo "MQTT_SERVER_ADDRESS=${{ secrets.MQTT_SERVER_ADDRESS }}" >> $GITHUB_ENV
+          echo "MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}" >> $GITHUB_ENV
+          echo "MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}" >> $GITHUB_ENV
+          echo "MQTT_TOPIC=${{ secrets.MQTT_TOPIC }}" >> $GITHUB_ENV
+
       - name: 💠 Install PlatformIO
         run: pip install platformio
+
 
       - name: ⚡️ Build esp01_1m using mqtt environments
         run: |
           platformio run -e esp01_1m_using_mqtt
-          cp .pio/build/esp01_1m_using_mqtt/firmware.bin esp01_1m_using_mqtt-${{ steps.version.outputs.version }}.bin
+          cp .pio/build/esp01_1m_using_mqtt/firmware.bin homelink_esp01_1m_using_mqtt-${{ steps.version.outputs.version }}.bin
 
       - name: ⚡️ Build esp01_1m using firebase environments
         run: |
           platformio run -e esp01_1m_using_firebase
-          cp .pio/build/esp01_1m_using_firebase/firmware.bin esp01_1m_using_firebase-${{ steps.version.outputs.version }}.bin
+          cp .pio/build/esp01_1m_using_firebase/firmware.bin homelink_esp01_1m_using_firebase-${{ steps.version.outputs.version }}.bin
 
       - name: ⚡️ Build esp d1 mini using mqtt environments
         run: |
           platformio run -e d1_mini_using_mqtt
-          cp .pio/build/d1_mini_using_mqtt/firmware.bin d1_mini_using_mqtt-${{ steps.version.outputs.version }}.bin
+          cp .pio/build/d1_mini_using_mqtt/firmware.bin homelink_d1_mini_using_mqtt-${{ steps.version.outputs.version }}.bin
 
 
       - name: ⚡️ Build esp d1 mini using firebase environments
         run: |
           platformio run -e d1_mini_using_firebase
-          cp .pio/build/d1_mini_using_firebase/firmware.bin d1_mini_using_firebase-${{ steps.version.outputs.version }}.bin
+          cp .pio/build/d1_mini_using_firebase/firmware.bin homelink_d1_mini_using_firebase-${{ steps.version.outputs.version }}.bin
 
 
       - name: 🚀 Create GitHub Release

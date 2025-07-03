@@ -19,7 +19,7 @@ MQTTServer::~MQTTServer(){
 }
 
 void MQTTServer::setup(){
-    mqtt_client.setServer(MQTT_BROKER, MQTT_PORT);
+    mqtt_client.setServer(MQTT_BROKER, 8883);
     mqtt_client.setCallback(MQTTServer::mqttCallback);
     connectToMQTTBroker();
 }

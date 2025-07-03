@@ -19,7 +19,3 @@
 #define FLAG_FIRESTORE_SETUP 97
 #define DNS_PORT 53
 #define RECONNECT_TIME_INTERVEL 5000
-
-#ifdef USING_MQTT_SERVER
-    #define MQTT_PORT 0
-#endif

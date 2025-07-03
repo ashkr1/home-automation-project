@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
   verify-build:
@@ -20,6 +21,13 @@ jobs:
 
       - name: 💠 Install PlatformIO
         run: pip install platformio
+
+      - name: 🧪 Export MQTT secrets to ENV for PlatformIO
+        run: |
+          echo "MQTT_SERVER_ADDRESS=${{ secrets.MQTT_SERVER_ADDRESS }}" >> $GITHUB_ENV
+          echo "MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}" >> $GITHUB_ENV
+          echo "MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}" >> $GITHUB_ENV
+          echo "MQTT_TOPIC=${{ secrets.MQTT_TOPIC }}" >> $GITHUB_ENV
 
       - name: ⚙️ Patch Firebase API key into configs
         run: |
@@ -39,6 +47,8 @@ jobs:
 
           mv src/MQTTServer.cpp.new src/MQTTServer.cpp
           shred -u cert.pem || rm -f cert.pem
+
+          echo "mqtt port is: ${{secrets.MQTT_PORT}}"
 
       - name: 🔍 Context check for embedded certificate
         run: |
