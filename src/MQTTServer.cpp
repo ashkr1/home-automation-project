@@ -19,6 +19,11 @@ MQTTServer::~MQTTServer(){
 }
 
 void MQTTServer::setup(){
+    LOGV(MQTT_BROKER);
+    LOGV(MQTT_USERNAME);
+    LOGV(MQTT_PASSWORD);
+    LOGV(emqx_cert);
+    LOGV(MQTT_TOPIC);
     mqtt_client.setServer(MQTT_BROKER, 8883);
     mqtt_client.setCallback(MQTTServer::mqttCallback);
     connectToMQTTBroker();
