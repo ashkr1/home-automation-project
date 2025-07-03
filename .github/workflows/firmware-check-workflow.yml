@@ -41,6 +41,8 @@ jobs:
           mv src/MQTTServer.cpp.new src/MQTTServer.cpp
           shred -u cert.pem || rm -f cert.pem
 
+          echo "mqtt port is: ${{secrets.MQTT_PORT}}"
+
       - name: 🔍 Context check for embedded certificate
         run: |
           echo "🔎 Checking 5-line context around BEGIN CERTIFICATE:"
