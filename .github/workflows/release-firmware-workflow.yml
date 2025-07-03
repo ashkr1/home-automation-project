@@ -19,7 +19,7 @@ jobs:
       - name: 🧮 Calculate next version based on lines changed
         id: version
         run: |
-          latest=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          latest=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "v0.0.0")
           echo "Latest tag: $latest"
           parts=(${latest//./ })
           major=${parts[0]#v}
