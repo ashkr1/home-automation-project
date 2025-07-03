@@ -7,10 +7,6 @@ FireStoreResultCallback* MQTTServer::callback = nullptr;
 WiFiClientSecure espClient;
 PubSubClient mqtt_client(espClient);
 
-#ifndef MQTT_PORT
-    #define MQTT_PORT 100
-#endif
-
 const char* emqx_cert = R"EOF(
 {{MQTT_CONNECTION_CERT}}
 )EOF";
@@ -23,7 +19,7 @@ MQTTServer::~MQTTServer(){
 }
 
 void MQTTServer::setup(){
-    mqtt_client.setServer(MQTT_BROKER, MQTT_PORT);
+    mqtt_client.setServer(MQTT_BROKER, 8883);
     mqtt_client.setCallback(MQTTServer::mqttCallback);
     connectToMQTTBroker();
 }
