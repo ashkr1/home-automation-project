@@ -7,10 +7,6 @@ FireStoreResultCallback* MQTTServer::callback = nullptr;
 WiFiClientSecure espClient;
 PubSubClient mqtt_client(espClient);
 
-#ifndef MQTT_PORT
-    #define MQTT_PORT 100
-#endif
-
 const char* emqx_cert = R"EOF(
 {{MQTT_CONNECTION_CERT}}
 )EOF";
