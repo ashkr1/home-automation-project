@@ -18,6 +18,17 @@ MQTTServer::~MQTTServer(){
     }
 }
 
+char* MQTTServer::setLWT(bool deviceStatus){
+    StaticJsonDocument<128> doc;
+    static char buffer[128];
+    doc["state"] = false;
+    doc["restart"] = false;
+    doc["status"] = deviceStatus;
+
+    serializeJson(doc, buffer);
+  return buffer;
+}
+
 void MQTTServer::setup(){
     mqtt_client.setServer(MQTT_BROKER, 8883);
     mqtt_client.setCallback(MQTTServer::mqttCallback);
@@ -32,17 +43,31 @@ String getDeviceId(){
     return "device_" + chipIdHex;
 }
 
+String getDeviceFBPass(){
+    String deviceId = String(ESP.getChipId(), HEX);
+    String mac = WiFi.macAddress();
+    mac.replace(":", "");  
+    mac.toLowerCase();
+    String combined = mac + deviceId;
+    return sha1(combined);
+}
+
 void MQTTServer::connectToMQTTBroker() {
     BearSSL::X509List serverTrustedCA(emqx_cert);
     espClient.setTrustAnchors(&serverTrustedCA);
+
+    Mqtt_topic = "homelink/"+getDeviceId();
+
     while (!mqtt_client.connected()) {
         String client_id = getDeviceId();
+        LOGI("%s, %s", getDeviceId().c_str(),getDeviceFBPass().c_str());
         LOGI("Connecting to MQTT Broker as %s.....\n", client_id.c_str());
-        if (mqtt_client.connect(client_id.c_str(), MQTT_USERNAME, MQTT_PASSWORD)) {
+        if (mqtt_client.connect(client_id.c_str(), getDeviceId().c_str(), getDeviceFBPass().c_str(),Mqtt_topic.c_str(),1,true,(const char *)setLWT(false))) {
             LOGFI("Connected to MQTT broker");
-            mqtt_client.subscribe(MQTT_TOPIC);
+            LOGI("Connecting to topic: %s",Mqtt_topic.c_str());
+            mqtt_client.subscribe(Mqtt_topic.c_str());
             // Publish message upon successful connection
-            // mqtt_client.publish(MQTT_TOPIC, "{Hi EMQX I'm ESP8266 ^^");
+            mqtt_client.publish(Mqtt_topic.c_str(), setLWT(true), true);
         } else {
             char err_buf[128];
             espClient.getLastSSLError(err_buf, sizeof(err_buf));
@@ -75,8 +100,8 @@ void MQTTServer::mqttCallback(char *topic, byte *payload, unsigned int length) {
         if(doc["state"].is<bool>()){
             state = doc["state"].as<bool>();
         }
-        if(doc["reset"].is<bool>()){
-            reset = doc["reset"].as<bool>();
+        if(doc["restart"].is<bool>()){
+            reset = doc["restart"].as<bool>();
         }
 
         if(callback){
