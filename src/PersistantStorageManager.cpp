@@ -82,3 +82,11 @@ bool PersistantStorageManager::isFirestoreSetupDone(){
     }
     return true;
 }
+
+void PersistantStorageManager::wipeAll() {
+    for (int i = 0; i < EEPROM_SIZE; i++) {
+        EEPROM.write(i, 0xFF);
+    }
+    EEPROM.commit();
+    Serial.println("⚠️ All EEPROM data wiped.");
+}

@@ -14,6 +14,7 @@ protected:
     void setFirebaseLoginConfig(bool isSet);
     void setFirestoreSetupState(bool isSet);
     bool isFirestoreSetupDone();
+    void wipeAll();
 public:
     PersistantStorageManager();
 };

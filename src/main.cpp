@@ -15,7 +15,24 @@ MQTTServer server;
 
 bool abnormalReset=false;
 int blinking=10;
-#define ABNORMAL_RESET_WARNING_PIN 0
+#ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+  #define ABNORMAL_RESET_WARNING_PIN 12
+#elif ARDUINO_ESP8266_ESP01
+  #define ABNORMAL_RESET_WARNING_PIN 0
+#endif  
+
+
+#ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+  #define MOTOR_ON_LED_PIN 13
+  #define CLEAR_DEVICE_PIN 12
+#endif
+
+
+#ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+  #define SWITCH_FLIP_PIN 14
+#elif ARDUINO_ESP8266_ESP01
+  #define SWITCH_FLIP_PIN 2
+#endif
 
 class Handler:public ConnectionCallback, public FirebaseCallback, public FireStoreResultCallback{
 
@@ -95,17 +112,26 @@ public:
     if(!reboot){
       if(state){
         LOGFI("device state changed, Pin set to LOW");
-        digitalWrite(2,LOW);
+        digitalWrite(SWITCH_FLIP_PIN,LOW);
+        #ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+          digitalWrite(MOTOR_ON_LED_PIN, HIGH);
+        #endif
       }else{
         LOGFI("device state changed, Pin set to HIGH");
-        digitalWrite(2, HIGH);
+        digitalWrite(SWITCH_FLIP_PIN, HIGH);
+        #ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+          digitalWrite(MOTOR_ON_LED_PIN, LOW);
+        #endif
       }
     }else{
       firestore_initilization_complete=false;
       #ifdef USING_FIREBASE_SERVER
         manager->updateReboot(false);
       #endif
-      digitalWrite(2, LOW);
+      digitalWrite(SWITCH_FLIP_PIN, LOW);
+      #ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+          digitalWrite(MOTOR_ON_LED_PIN, HIGH);
+      #endif
       LOGFW("rebooting device on request....");
       delay(2000);
       ESP.restart();
@@ -153,6 +179,7 @@ public:
 };
 
 Handler handler;
+CaptivePortal* captivePortal = nullptr;
 
 void setup() {
   
@@ -160,7 +187,7 @@ void setup() {
   LOGI("Prime HomeLink, started: %s",FIRMWARE_VERSION);
 
   Serial.begin(74880);
-  Serial.setDebugOutput(true);
+  Serial.setDebugOutput(true)                   ;
 
   pinMode(ABNORMAL_RESET_WARNING_PIN,OUTPUT);
   
@@ -172,8 +199,14 @@ void setup() {
     digitalWrite(ABNORMAL_RESET_WARNING_PIN,LOW);
   }
 
-  pinMode(2, OUTPUT);
-  digitalWrite(2, HIGH);
+  pinMode(SWITCH_FLIP_PIN, OUTPUT);
+  digitalWrite(SWITCH_FLIP_PIN, HIGH);
+
+  #ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+    pinMode(CLEAR_DEVICE_PIN,INPUT_PULLUP);
+    pinMode(MOTOR_ON_LED_PIN, OUTPUT);
+    digitalWrite(MOTOR_ON_LED_PIN, LOW);
+  #endif
 
   handler.init();
 
@@ -181,7 +214,13 @@ void setup() {
 
   CaptivePortal::addStaConnectionCallback(&handler);
 
-  CaptivePortal::getInstance()->startServer();
+  if(captivePortal == nullptr){
+    captivePortal = CaptivePortal::getInstance();
+  }
+
+  captivePortal->startServer();
+
+  // CaptivePortal::getInstance()->startServer();
 
 }
 
@@ -210,4 +249,12 @@ void loop() {
       FirebaseManager::getInstance()->asyncLoop();
     #endif
     handler.manageConnectionCalls();
+
+  #ifdef ARDUINO_ESP8266_WEMOS_D1MINI
+    if(digitalRead(CLEAR_DEVICE_PIN)==LOW && captivePortal!=nullptr){
+      if(captivePortal->clearPersistedData()){
+        ESP.restart();
+      }
+    }
+  #endif
 }

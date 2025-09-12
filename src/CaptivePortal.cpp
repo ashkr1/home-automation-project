@@ -27,6 +27,15 @@ void syncTime() {
     LOGFI("⏰ Time synced");
 }
 
+bool CaptivePortal::clearPersistedData(){
+    if(this->isWifiCredentialsExists()){
+        this->wipeAll();
+        return true;
+    }
+
+    return false;
+}
+
 
 CaptivePortal::~CaptivePortal(){
     if(webServer!=nullptr){
