@@ -56,5 +56,7 @@ class CaptivePortal:private PersistantStorageManager, private DNSServer{
 
     void nextRequestHandler();
 
+    bool clearPersistedData();
+
 };
 
